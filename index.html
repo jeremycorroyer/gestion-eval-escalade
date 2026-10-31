@@ -365,16 +365,15 @@
             "Firdaws", "Fatoumata", "Noeud"
         ].sort();
 
-        // CARTOGRAPHIE DES VOIES DE A à H
+        // CONFIGURATION EXACTE SANS LA VOIE G
         const WALL_CONFIG = [
             { id: "A", name: "Voie A", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: "C", name: "Voie C", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
-            { id: "D", name: "Voie D", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }] },
+            { id: "C", name: "Voie C", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "D", name: "Voie D", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "vert", name: "Verte", pts: 2 }] },
             { id: "E", name: "Voie E", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
             { id: "F", name: "Voie F", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
-            { id: "G", name: "Voie G", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: "H", name: "Voie H", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] }
+            { id: "H", name: "Voie H", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] }
         ];
 
         let state = {
@@ -382,7 +381,7 @@
         };
 
         function init() {
-            const savedState = localStorage.getItem('escalade_4e3_db_ah');
+            const savedState = localStorage.getItem('escalade_4e3_db_nog');
             if (savedState) {
                 state = JSON.parse(savedState);
             } else {
@@ -398,7 +397,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('escalade_4e3_db_ah', JSON.stringify(state));
+            localStorage.setItem('escalade_4e3_db_nog', JSON.stringify(state));
         }
 
         function setMode(mode) {
@@ -560,7 +559,7 @@
 
         function resetAllData() {
             if (confirm("Attention : veux-tu vraiment réinitialiser toutes les données d'évaluation de la classe ?")) {
-                localStorage.removeItem('escalade_4e3_db_ah');
+                localStorage.removeItem('escalade_4e3_db_nog');
                 state.students = {};
                 INITIAL_STUDENTS.forEach(name => {
                     state.students[name] = {};
