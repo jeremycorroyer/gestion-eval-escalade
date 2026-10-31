@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Évaluation Escalade EPS - 4ème 3</title>
+    <title>Évaluation Escalade EPS</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -85,7 +85,7 @@
             padding: 16px;
         }
 
-        .student-select-card {
+        .card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -102,7 +102,7 @@
             letter-spacing: 0.5px;
         }
 
-        select, input {
+        select, input, textarea {
             width: 100%;
             padding: 12px;
             background: var(--bg);
@@ -111,9 +111,10 @@
             color: var(--text);
             font-size: 1rem;
             outline: none;
+            margin-bottom: 10px;
         }
 
-        select:focus, input:focus {
+        select:focus, input:focus, textarea:focus {
             border-color: var(--accent);
         }
 
@@ -208,20 +209,10 @@
         }
 
         .prof-controls {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
             display: flex;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
-            align-items: flex-end;
-        }
-
-        .control-group {
-            flex: 1;
-            min-width: 200px;
+            margin-bottom: 20px;
         }
 
         .stats-table-wrapper {
@@ -293,6 +284,16 @@
             cursor: pointer;
         }
 
+        .btn-secondary {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .btn-danger {
             background: #ef4444;
             color: white;
@@ -304,7 +305,7 @@
 <body>
 
     <header>
-        <h1>Escalade EPS - 4ème 3</h1>
+        <h1 id="app-title">Escalade EPS</h1>
         <div class="mode-toggle">
             <button class="mode-btn active" onclick="setMode('eleve')">Mode Élève</button>
             <button class="mode-btn" onclick="setMode('prof')">Mode Professeur</button>
@@ -313,9 +314,20 @@
 
     <div class="container">
         
+        <!-- SÉLECTEUR DE CLASSE GLOBAL -->
+        <div class="card">
+            <label for="class-select">Classe active :</label>
+            <div style="display: flex; gap: 10px;">
+                <select id="class-select" onchange="changeActiveClasse(this.value)" style="margin-bottom:0; flex:1;">
+                    <!-- Généré dynamiquement -->
+                </select>
+                <button class="btn-secondary" onclick="createNewClassPrompt()">+ Nouvelle classe</button>
+            </div>
+        </div>
+
         <!-- SECTION ÉLÈVE -->
         <section id="section-eleve">
-            <div class="student-select-card">
+            <div class="card">
                 <label for="student-select">Sélectionne ton nom et prénom :</label>
                 <select id="student-select" onchange="loadStudentData()">
                     <option value="">-- Choisis ton nom --</option>
@@ -341,12 +353,16 @@
 
         <!-- SECTION PROFESSEUR -->
         <section id="section-prof" class="hidden">
-            <div class="prof-controls">
-                <div class="control-group">
-                    <button class="btn-action" onclick="exportCSV()">Exporter en CSV</button>
+            <div class="card">
+                <label>Gestion des élèves de la classe :</label>
+                <div style="margin-bottom: 12px;">
+                    <textarea id="import-names-input" rows="3" placeholder="Coller une liste de prénoms (un par ligne ou séparés par des virgules)..."></textarea>
+                    <button class="btn-secondary" onclick="importStudents()">Importer / Ajouter ces élèves</button>
                 </div>
-                <div class="control-group">
-                    <button class="btn-action btn-danger" onclick="resetAllData()">Réinitialiser tout</button>
+                
+                <div class="prof-controls">
+                    <button class="btn-action" onclick="exportCSV()">Exporter la classe en CSV</button>
+                    <button class="btn-action btn-danger" onclick="resetCurrentClassData()">Réinitialiser cette classe</button>
                 </div>
             </div>
 
@@ -372,15 +388,15 @@
     </div>
 
     <script>
-        const INITIAL_STUDENTS = [
+        const DEFAULT_CLASS_NAME = "4e3";
+        const DEFAULT_STUDENTS = [
             "Agathe", "Badr", "Selena", "Adam", "Ibrahim-Mamadou", "Tarik", 
             "Lilya", "Sofia", "Cassandra", "Azilize", "Enzo", "Dave", 
             "Gabriel", "Marwa", "Divine", "Zola", "Victoria", "Raphaël", 
             "Fatma", "Anas", "Robin", "Neyl", "Abisha", "Ewan", 
             "Firdaws", "Fatoumata", "Noeud"
-        ].sort();
+        ];
 
-        // CONFIGURATION EXACTE DES VOIES
         const WALL_CONFIG = [
             { id: "A", name: "Voie A", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
             { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }] },
@@ -391,28 +407,107 @@
             { id: "H", name: "Voie H", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] }
         ];
 
-        let state = {
-            students: {}
+        let db = {
+            activeClass: DEFAULT_CLASS_NAME,
+            classes: {}
         };
 
         function init() {
-            const savedState = localStorage.getItem('escalade_4e3_db_v3');
-            if (savedState) {
-                state = JSON.parse(savedState);
+            const savedDB = localStorage.getItem('escalade_multiclass_db');
+            if (savedDB) {
+                db = JSON.parse(savedDB);
             } else {
-                INITIAL_STUDENTS.forEach(name => {
-                    state.students[name] = { climbs: {}, engagement: 3, securite: 3 };
+                db.classes[DEFAULT_CLASS_NAME] = {};
+                DEFAULT_STUDENTS.forEach(name => {
+                    db.classes[DEFAULT_CLASS_NAME][name] = { climbs: {}, engagement: 3, securite: 3 };
                 });
-                saveState();
+                saveDB();
             }
 
+            if (!db.classes[db.activeClass]) {
+                db.activeClass = Object.keys(db.classes)[0] || DEFAULT_CLASS_NAME;
+            }
+
+            populateClassSelect();
             populateStudentSelect();
             renderClimbGrid();
             renderProfTable();
+            updateHeaderTitle();
         }
 
-        function saveState() {
-            localStorage.setItem('escalade_4e3_db_v3', JSON.stringify(state));
+        function saveDB() {
+            localStorage.setItem('escalade_multiclass_db', JSON.stringify(db));
+        }
+
+        function updateHeaderTitle() {
+            document.getElementById('app-title').textContent = `Escalade EPS - Classe : ${db.activeClass}`;
+        }
+
+        function populateClassSelect() {
+            const select = document.getElementById('class-select');
+            select.innerHTML = '';
+            Object.keys(db.classes).sort().forEach(className => {
+                const opt = document.createElement('option');
+                opt.value = className;
+                opt.textContent = className;
+                if (className === db.activeClass) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function changeActiveClasse(className) {
+            if (!className) return;
+            db.activeClass = className;
+            saveDB();
+            populateStudentSelect();
+            renderProfTable();
+            updateHeaderTitle();
+            document.getElementById('student-workspace').classList.add('hidden');
+            document.getElementById('student-select').value = "";
+        }
+
+        function createNewClassPrompt() {
+            const newName = prompt("Nom de la nouvelle classe (ex: 5e1, 6e4) :");
+            if (!newName) return;
+            const cleanName = newName.trim();
+            if (db.classes[cleanName]) {
+                alert("Cette classe existe déjà.");
+                return;
+            }
+            db.classes[cleanName] = {};
+            db.activeClass = cleanName;
+            saveDB();
+            populateClassSelect();
+            populateStudentSelect();
+            renderProfTable();
+            updateHeaderTitle();
+            document.getElementById('student-workspace').classList.add('hidden');
+            document.getElementById('student-select').value = "";
+        }
+
+        function importStudents() {
+            const text = document.getElementById('import-names-input').value.trim();
+            if (!text) {
+                alert("Veuillez coller une liste de prénoms.");
+                return;
+            }
+
+            // Découpage par ligne ou par virgule
+            const names = text.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
+            let addedCount = 0;
+
+            names.forEach(name => {
+                if (!db.classes[db.activeClass][name]) {
+                    db.classes[db.activeClass][name] = { climbs: {}, engagement: 3, securite: 3 };
+                    addedCount++;
+                }
+            });
+
+            saveDB();
+            populateStudentSelect();
+            renderProfTable();
+            document.getElementById('import-names-input').value = "";
+            alert(`${addedCount} élève(s) ajouté(s) à la classe ${db.activeClass} !`);
         }
 
         function setMode(mode) {
@@ -432,7 +527,8 @@
         function populateStudentSelect() {
             const select = document.getElementById('student-select');
             select.innerHTML = '<option value="">-- Choisis ton nom --</option>';
-            Object.keys(state.students).sort().forEach(name => {
+            const studentsObj = db.classes[db.activeClass] || {};
+            Object.keys(studentsObj).sort().forEach(name => {
                 const opt = document.createElement('option');
                 opt.value = name;
                 opt.textContent = name;
@@ -481,18 +577,19 @@
             const studentName = document.getElementById('student-select').value;
             if (!studentName) return;
 
-            if (!state.students[studentName].climbs) {
-                state.students[studentName].climbs = {};
+            const classData = db.classes[db.activeClass];
+            if (!classData[studentName].climbs) {
+                classData[studentName].climbs = {};
             }
 
             const key = `v${wayId}_${levelId}`;
-            if (state.students[studentName].climbs[key]) {
-                delete state.students[studentName].climbs[key];
+            if (classData[studentName].climbs[key]) {
+                delete classData[studentName].climbs[key];
             } else {
-                state.students[studentName].climbs[key] = true;
+                classData[studentName].climbs[key] = true;
             }
 
-            saveState();
+            saveDB();
             updateStudentUI(studentName);
         }
 
@@ -511,7 +608,7 @@
         }
 
         function updateStudentUI(studentName) {
-            const studentData = state.students[studentName];
+            const studentData = db.classes[db.activeClass][studentName];
             const climbs = studentData.climbs || {};
             let count = 0;
 
@@ -536,21 +633,23 @@
         }
 
         function updateExtraScore(studentName, field, value) {
-            if (!state.students[studentName]) return;
-            state.students[studentName][field] = parseFloat(value) || 0;
-            saveState();
+            const classData = db.classes[db.activeClass];
+            if (!classData[studentName]) return;
+            classData[studentName][field] = parseFloat(value) || 0;
+            saveDB();
         }
 
         function renderProfTable() {
             const tbody = document.getElementById('prof-table-body');
             tbody.innerHTML = '';
 
-            Object.keys(state.students).sort().forEach(name => {
-                const student = state.students[name];
+            const studentsObj = db.classes[db.activeClass] || {};
+
+            Object.keys(studentsObj).sort().forEach(name => {
+                const student = studentsObj[name];
                 const climbs = student.climbs || {};
                 const climbPts = calculateClimbPoints(climbs);
                 
-                // Formatage du détail des voies réussies pour le prof
                 let detailsText = [];
                 WALL_CONFIG.forEach(way => {
                     way.levels.forEach(lvl => {
@@ -579,9 +678,12 @@
         }
 
         function exportCSV() {
-            let csv = "Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur 40\n";
-            Object.keys(state.students).sort().forEach(name => {
-                const student = state.students[name];
+            const className = db.activeClass;
+            let csv = `Classe;Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur 40\n`;
+            const studentsObj = db.classes[className] || {};
+
+            Object.keys(studentsObj).sort().forEach(name => {
+                const student = studentsObj[name];
                 const climbs = student.climbs || {};
                 const climbPts = calculateClimbPoints(climbs);
                 
@@ -598,28 +700,27 @@
                 const securite = student.securite !== undefined ? student.securite : 3;
                 const totalNote = Math.min(40, climbPts + engagement + securite).toFixed(1);
 
-                csv += `"${name}";"${detailsText.join(' / ')}";${climbPts};${engagement};${securite};${totalNote}\n`;
+                csv += `"${className}";"${name}";"${detailsText.join(' / ')}";${climbPts};${engagement};${securite};${totalNote}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", "evaluation_escalade_4e3_sur40.csv");
+            link.setAttribute("download", `evaluation_escalade_${className}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        function resetAllData() {
-            if (confirm("Attention : veux-tu vraiment réinitialiser toutes les données d'évaluation de la classe ?")) {
-                localStorage.removeItem('escalade_4e3_db_v3');
-                state.students = {};
-                INITIAL_STUDENTS.forEach(name => {
-                    state.students[name] = { climbs: {}, engagement: 3, securite: 3 };
+        function resetCurrentClassData() {
+            if (confirm(`Veux-tu vraiment réinitialiser toutes les notes de la classe ${db.activeClass} ?`)) {
+                const studentsObj = db.classes[db.activeClass];
+                Object.keys(studentsObj).forEach(name => {
+                    studentsObj[name] = { climbs: {}, engagement: 3, securite: 3 };
                 });
-                saveState();
+                saveDB();
                 init();
-                alert("Données réinitialisées.");
+                alert("Données de la classe réinitialisées.");
             }
         }
 
