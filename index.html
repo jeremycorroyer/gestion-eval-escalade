@@ -13,7 +13,6 @@
             --text-muted: #94a3b8;
             --border: #334155;
             
-            /* Couleurs des voies */
             --tp-bg: #475569;
             --tp-text: #ffffff;
             --bleu-bg: #2563eb;
@@ -81,7 +80,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 16px;
         }
@@ -222,7 +221,7 @@
 
         .control-group {
             flex: 1;
-            min-width: 150px;
+            min-width: 200px;
         }
 
         .stats-table-wrapper {
@@ -236,12 +235,13 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         th, td {
-            padding: 12px 16px;
+            padding: 10px 12px;
             border-bottom: 1px solid var(--border);
+            vertical-align: middle;
         }
 
         th {
@@ -257,7 +257,7 @@
         .score-badge {
             background: var(--accent);
             color: #0f172a;
-            padding: 4px 8px;
+            padding: 3px 6px;
             border-radius: 6px;
             font-weight: 700;
         }
@@ -268,6 +268,19 @@
             padding: 4px 8px;
             border-radius: 6px;
             font-weight: 700;
+        }
+
+        .input-score {
+            width: 60px;
+            padding: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .details-list {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            max-width: 250px;
         }
 
         .btn-action {
@@ -342,9 +355,11 @@
                     <thead>
                         <tr>
                             <th>Élève</th>
-                            <th>Voies validées</th>
-                            <th>Total Points</th>
-                            <th>Note / 30</th>
+                            <th>Voies validées (Détail)</th>
+                            <th>Voies (/33.5)</th>
+                            <th>Engagement (/5)</th>
+                            <th>Sécurité (/5)</th>
+                            <th>Total / 40</th>
                         </tr>
                     </thead>
                     <tbody id="prof-table-body">
@@ -365,7 +380,7 @@
             "Firdaws", "Fatoumata", "Noeud"
         ].sort();
 
-        // CONFIGURATION EXACTE SANS LA VOIE G
+        // CONFIGURATION EXACTE DES VOIES
         const WALL_CONFIG = [
             { id: "A", name: "Voie A", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
             { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }] },
@@ -381,12 +396,12 @@
         };
 
         function init() {
-            const savedState = localStorage.getItem('escalade_4e3_db_nog');
+            const savedState = localStorage.getItem('escalade_4e3_db_v3');
             if (savedState) {
                 state = JSON.parse(savedState);
             } else {
                 INITIAL_STUDENTS.forEach(name => {
-                    state.students[name] = {};
+                    state.students[name] = { climbs: {}, engagement: 3, securite: 3 };
                 });
                 saveState();
             }
@@ -397,7 +412,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('escalade_4e3_db_nog', JSON.stringify(state));
+            localStorage.setItem('escalade_4e3_db_v3', JSON.stringify(state));
         }
 
         function setMode(mode) {
@@ -466,26 +481,28 @@
             const studentName = document.getElementById('student-select').value;
             if (!studentName) return;
 
-            const key = `v${wayId}_${levelId}`;
-            const studentData = state.students[studentName] || {};
-
-            if (studentData[key]) {
-                delete studentData[key];
-            } else {
-                studentData[key] = true;
+            if (!state.students[studentName].climbs) {
+                state.students[studentName].climbs = {};
             }
 
-            state.students[studentName] = studentData;
+            const key = `v${wayId}_${levelId}`;
+            if (state.students[studentName].climbs[key]) {
+                delete state.students[studentName].climbs[key];
+            } else {
+                state.students[studentName].climbs[key] = true;
+            }
+
             saveState();
             updateStudentUI(studentName);
         }
 
-        function calculatePoints(studentData) {
+        function calculateClimbPoints(climbsData) {
             let pts = 0;
+            if (!climbsData) return 0;
             WALL_CONFIG.forEach(way => {
                 way.levels.forEach(lvl => {
                     const key = `v${way.id}_${lvl.id}`;
-                    if (studentData[key]) {
+                    if (climbsData[key]) {
                         pts += lvl.pts;
                     }
                 });
@@ -494,7 +511,8 @@
         }
 
         function updateStudentUI(studentName) {
-            const studentData = state.students[studentName] || {};
+            const studentData = state.students[studentName];
+            const climbs = studentData.climbs || {};
             let count = 0;
 
             WALL_CONFIG.forEach(way => {
@@ -502,7 +520,7 @@
                     const key = `v${way.id}_${lvl.id}`;
                     const btn = document.getElementById(`btn-${way.id}-${lvl.id}`);
                     if (btn) {
-                        if (studentData[key]) {
+                        if (climbs[key]) {
                             btn.classList.add('done');
                             count++;
                         } else {
@@ -512,9 +530,15 @@
                 });
             });
 
-            const totalPts = calculatePoints(studentData);
+            const totalPts = calculateClimbPoints(climbs);
             document.getElementById('display-climb-count').textContent = `${count} voie(s) validée(s)`;
             document.getElementById('display-student-pts').textContent = `${totalPts} pts`;
+        }
+
+        function updateExtraScore(studentName, field, value) {
+            if (!state.students[studentName]) return;
+            state.students[studentName][field] = parseFloat(value) || 0;
+            saveState();
         }
 
         function renderProfTable() {
@@ -522,36 +546,65 @@
             tbody.innerHTML = '';
 
             Object.keys(state.students).sort().forEach(name => {
-                const data = state.students[name] || {};
-                const count = Object.keys(data).length;
-                const pts = calculatePoints(data);
-                const note = Math.min(30, pts).toFixed(1);
+                const student = state.students[name];
+                const climbs = student.climbs || {};
+                const climbPts = calculateClimbPoints(climbs);
+                
+                // Formatage du détail des voies réussies pour le prof
+                let detailsText = [];
+                WALL_CONFIG.forEach(way => {
+                    way.levels.forEach(lvl => {
+                        if (climbs[`v${way.id}_${lvl.id}`]) {
+                            detailsText.push(`${way.name} (${lvl.name})`);
+                        }
+                    });
+                });
+                const detailsDisplay = detailsText.length > 0 ? detailsText.join(', ') : '<span style="color:#64748b">Aucune voie</span>';
+
+                const engagement = student.engagement !== undefined ? student.engagement : 3;
+                const securite = student.securite !== undefined ? student.securite : 3;
+                const totalNote = Math.min(40, climbPts + engagement + securite).toFixed(1);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${name}</strong></td>
-                    <td>${count}</td>
-                    <td><span class="score-badge">${pts} pts</span></td>
-                    <td><span class="note-badge">${note} / 30</span></td>
+                    <td><div class="details-list">${detailsDisplay}</div></td>
+                    <td><span class="score-badge">${climbPts}</span></td>
+                    <td><input type="number" class="input-score" value="${engagement}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'engagement', this.value); renderProfTable();"></td>
+                    <td><input type="number" class="input-score" value="${securite}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'securite', this.value); renderProfTable();"></td>
+                    <td><span class="note-badge">${totalNote} / 40</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function exportCSV() {
-            let csv = "Eleve;Voies Validees;Total Points;Note sur 30\n";
+            let csv = "Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur 40\n";
             Object.keys(state.students).sort().forEach(name => {
-                const data = state.students[name] || {};
-                const count = Object.keys(data).length;
-                const pts = calculatePoints(data);
-                const note = Math.min(30, pts).toFixed(1);
-                csv += `"${name}";${count};${pts};${note}\n`;
+                const student = state.students[name];
+                const climbs = student.climbs || {};
+                const climbPts = calculateClimbPoints(climbs);
+                
+                let detailsText = [];
+                WALL_CONFIG.forEach(way => {
+                    way.levels.forEach(lvl => {
+                        if (climbs[`v${way.id}_${lvl.id}`]) {
+                            detailsText.push(`${way.name}-${lvl.name}`);
+                        }
+                    });
+                });
+
+                const engagement = student.engagement !== undefined ? student.engagement : 3;
+                const securite = student.securite !== undefined ? student.securite : 3;
+                const totalNote = Math.min(40, climbPts + engagement + securite).toFixed(1);
+
+                csv += `"${name}";"${detailsText.join(' / ')}";${climbPts};${engagement};${securite};${totalNote}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", "evaluation_escalade_4e3_sur30.csv");
+            link.setAttribute("download", "evaluation_escalade_4e3_sur40.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -559,10 +612,10 @@
 
         function resetAllData() {
             if (confirm("Attention : veux-tu vraiment réinitialiser toutes les données d'évaluation de la classe ?")) {
-                localStorage.removeItem('escalade_4e3_db_nog');
+                localStorage.removeItem('escalade_4e3_db_v3');
                 state.students = {};
                 INITIAL_STUDENTS.forEach(name => {
-                    state.students[name] = {};
+                    state.students[name] = { climbs: {}, engagement: 3, securite: 3 };
                 });
                 saveState();
                 init();
