@@ -86,7 +86,6 @@
             padding: 16px;
         }
 
-        /* MODE ÉLÈVE */
         .student-select-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -209,7 +208,6 @@
             align-items: center;
         }
 
-        /* MODE PROF */
         .prof-controls {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -317,10 +315,13 @@
                         <strong id="display-student-name">Élève</strong>
                         <div style="font-size: 0.85rem; color: #93c5fd;" id="display-climb-count">0 voie(s) validée(s)</div>
                     </div>
+                    <div style="text-align: right;">
+                        <span id="display-student-pts" class="score-badge">0 pts</span>
+                    </div>
                 </div>
 
                 <div class="climb-grid" id="climb-grid">
-                    <!-- Les cartes des voies 1 à 8 seront générées ici -->
+                    <!-- Généré dynamiquement -->
                 </div>
             </div>
         </section>
@@ -328,10 +329,6 @@
         <!-- SECTION PROFESSEUR -->
         <section id="section-prof" class="hidden">
             <div class="prof-controls">
-                <div class="control-group">
-                    <label for="max-pts">Points requis pour 20/20 :</label>
-                    <input type="number" id="max-pts" value="15" min="1" step="0.5" onchange="updateMaxPts(this.value)">
-                </div>
                 <div class="control-group">
                     <button class="btn-action" onclick="exportCSV()">Exporter en CSV</button>
                 </div>
@@ -347,11 +344,11 @@
                             <th>Élève</th>
                             <th>Voies validées</th>
                             <th>Total Points</th>
-                            <th>Note / 20</th>
+                            <th>Note / 30</th>
                         </tr>
                     </thead>
                     <tbody id="prof-table-body">
-                        <!-- Les lignes d'élèves seront générées ici -->
+                        <!-- Généré dynamiquement -->
                     </tbody>
                 </table>
             </div>
@@ -360,35 +357,32 @@
     </div>
 
     <script>
-        // LISTE EXACTE DES ÉLÈVES DE 4E3
         const INITIAL_STUDENTS = [
             "Agathe", "Badr", "Selena", "Adam", "Ibrahim-Mamadou", "Tarik", 
             "Lilya", "Sofia", "Cassandra", "Azilize", "Enzo", "Dave", 
             "Gabriel", "Marwa", "Divine", "Zola", "Victoria", "Raphaël", 
             "Fatma", "Anas", "Robin", "Neyl", "Abisha", "Ewan", 
-            "Firdaws", "Fatoumata", "Noeud", "Voie A"
+            "Firdaws", "Fatoumata", "Noeud"
         ].sort();
 
-        // CARTOGRAPHIE DES VOIES SELON LEMur REEL (Voies 1 à 8)
+        // CARTOGRAPHIE DES VOIES DE A à H
         const WALL_CONFIG = [
-            { id: 1, name: "Voie 1", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: 2, name: "Voie 2", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: 3, name: "Voie 3", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
-            { id: 4, name: "Voie 4", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: 5, name: "Voie 5", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: 6, name: "Voie 6", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
-            { id: 7, name: "Voie 7", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
-            { id: 8, name: "Voie 8", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] }
+            { id: "A", name: "Voie A", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "C", name: "Voie C", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
+            { id: "D", name: "Voie D", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "E", name: "Voie E", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "F", name: "Voie F", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
+            { id: "G", name: "Voie G", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: "H", name: "Voie H", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] }
         ];
 
         let state = {
-            maxPts: 15,
             students: {}
         };
 
-        // INITIALISATION
         function init() {
-            const savedState = localStorage.getItem('escalade_4e3_db');
+            const savedState = localStorage.getItem('escalade_4e3_db_ah');
             if (savedState) {
                 state = JSON.parse(savedState);
             } else {
@@ -404,7 +398,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('escalade_4e3_db', JSON.stringify(state));
+            localStorage.setItem('escalade_4e3_db_ah', JSON.stringify(state));
         }
 
         function setMode(mode) {
@@ -441,7 +435,7 @@
                 card.className = 'way-card';
                 
                 let btnsHTML = way.levels.map(lvl => `
-                    <button class="climb-btn ${lvl.id}" id="btn-${way.id}-${lvl.id}" onclick="toggleClimb(${way.id}, '${lvl.id}')">
+                    <button class="climb-btn ${lvl.id}" id="btn-${way.id}-${lvl.id}" onclick="toggleClimb('${way.id}', '${lvl.id}')">
                         <span>${lvl.name}</span>
                         <span class="pts-tag">(${lvl.pts} pt)</span>
                     </button>
@@ -466,7 +460,6 @@
 
             workspace.classList.remove('hidden');
             document.getElementById('display-student-name').textContent = studentName;
-
             updateStudentUI(studentName);
         }
 
@@ -488,6 +481,19 @@
             updateStudentUI(studentName);
         }
 
+        function calculatePoints(studentData) {
+            let pts = 0;
+            WALL_CONFIG.forEach(way => {
+                way.levels.forEach(lvl => {
+                    const key = `v${way.id}_${lvl.id}`;
+                    if (studentData[key]) {
+                        pts += lvl.pts;
+                    }
+                });
+            });
+            return pts;
+        }
+
         function updateStudentUI(studentName) {
             const studentData = state.students[studentName] || {};
             let count = 0;
@@ -507,65 +513,46 @@
                 });
             });
 
+            const totalPts = calculatePoints(studentData);
             document.getElementById('display-climb-count').textContent = `${count} voie(s) validée(s)`;
-        }
-
-        function calculatePoints(studentData) {
-            let pts = 0;
-            WALL_CONFIG.forEach(way => {
-                way.levels.forEach(lvl => {
-                    const key = `v${way.id}_${lvl.id}`;
-                    if (studentData[key]) {
-                        pts += lvl.pts;
-                    }
-                });
-            });
-            return pts;
-        }
-
-        function updateMaxPts(val) {
-            state.maxPts = parseFloat(val) || 15;
-            saveState();
-            renderProfTable();
+            document.getElementById('display-student-pts').textContent = `${totalPts} pts`;
         }
 
         function renderProfTable() {
             const tbody = document.getElementById('prof-table-body');
             tbody.innerHTML = '';
 
-            document.getElementById('max-pts').value = state.maxPts;
-
             Object.keys(state.students).sort().forEach(name => {
                 const data = state.students[name] || {};
                 const count = Object.keys(data).length;
                 const pts = calculatePoints(data);
-                const note = Math.min(20, (pts / state.maxPts) * 20).toFixed(1);
+                const note = Math.min(30, pts).toFixed(1);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${name}</strong></td>
                     <td>${count}</td>
                     <td><span class="score-badge">${pts} pts</span></td>
-                    <td><span class="note-badge">${note} / 20</span></td>
+                    <td><span class="note-badge">${note} / 30</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function exportCSV() {
-            let csv = "Eleve;Voies Validees;Total Points;Note sur 20\n";
+            let csv = "Eleve;Voies Validees;Total Points;Note sur 30\n";
             Object.keys(state.students).sort().forEach(name => {
                 const data = state.students[name] || {};
                 const count = Object.keys(data).length;
                 const pts = calculatePoints(data);
-                const note = Math.min(20, (pts / state.maxPts) * 20).toFixed(1);
+                const note = Math.min(30, pts).toFixed(1);
                 csv += `"${name}";${count};${pts};${note}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", "evaluation_escalade_4e3.csv");
+            link.setAttribute("download", "evaluation_escalade_4e3_sur30.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -573,7 +560,7 @@
 
         function resetAllData() {
             if (confirm("Attention : veux-tu vraiment réinitialiser toutes les données d'évaluation de la classe ?")) {
-                localStorage.removeItem('escalade_4e3_db');
+                localStorage.removeItem('escalade_4e3_db_ah');
                 state.students = {};
                 INITIAL_STUDENTS.forEach(name => {
                     state.students[name] = {};
