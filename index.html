@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Évaluation Escalade EPS - 4ème 3</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            
+            /* Couleurs des voies */
+            --tp-bg: #475569;
+            --tp-text: #ffffff;
+            --bleu-bg: #2563eb;
+            --bleu-text: #ffffff;
+            --vert-bg: #16a34a;
+            --vert-text: #ffffff;
+            --rouge-bg: #dc2626;
+            --rouge-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 30px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 2px;
+            border: 1px solid var(--border);
+        }
+
+        .mode-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: #0f172a;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* MODE ÉLÈVE */
+        .student-select-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent);
+        }
+
+        .climb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .way-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .way-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .buttons-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .climb-btn {
+            border: none;
+            padding: 14px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .climb-btn:active {
+            transform: scale(0.96);
+        }
+
+        .climb-btn.tp { background-color: var(--tp-bg); color: var(--tp-text); }
+        .climb-btn.bleu { background-color: var(--bleu-bg); color: var(--bleu-text); }
+        .climb-btn.vert { background-color: var(--vert-bg); color: var(--vert-text); }
+        .climb-btn.rouge { background-color: var(--rouge-bg); color: var(--rouge-text); }
+
+        .climb-btn.done {
+            opacity: 0.4;
+            box-shadow: inset 0 0 0 2px var(--text);
+        }
+
+        .climb-btn.done::after {
+            content: "✓ VALIDÉE";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.9);
+            color: #4ade80;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .pts-tag {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        .summary-banner {
+            background: #1e3a8a;
+            border: 1px solid #3b82f6;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* MODE PROF */
+        .prof-controls {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .stats-table-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--bg);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .score-badge {
+            background: var(--accent);
+            color: #0f172a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .note-badge {
+            background: #22c55e;
+            color: #0f172a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .btn-action {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Escalade EPS - 4ème 3</h1>
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="setMode('eleve')">Mode Élève</button>
+            <button class="mode-btn" onclick="setMode('prof')">Mode Professeur</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- SECTION ÉLÈVE -->
+        <section id="section-eleve">
+            <div class="student-select-card">
+                <label for="student-select">Sélectionne ton nom et prénom :</label>
+                <select id="student-select" onchange="loadStudentData()">
+                    <option value="">-- Choisis ton nom --</option>
+                </select>
+            </div>
+
+            <div id="student-workspace" class="hidden">
+                <div class="summary-banner">
+                    <div>
+                        <strong id="display-student-name">Élève</strong>
+                        <div style="font-size: 0.85rem; color: #93c5fd;" id="display-climb-count">0 voie(s) validée(s)</div>
+                    </div>
+                </div>
+
+                <div class="climb-grid" id="climb-grid">
+                    <!-- Les cartes des voies 1 à 8 seront générées ici -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION PROFESSEUR -->
+        <section id="section-prof" class="hidden">
+            <div class="prof-controls">
+                <div class="control-group">
+                    <label for="max-pts">Points requis pour 20/20 :</label>
+                    <input type="number" id="max-pts" value="15" min="1" step="0.5" onchange="updateMaxPts(this.value)">
+                </div>
+                <div class="control-group">
+                    <button class="btn-action" onclick="exportCSV()">Exporter en CSV</button>
+                </div>
+                <div class="control-group">
+                    <button class="btn-action btn-danger" onclick="resetAllData()">Réinitialiser tout</button>
+                </div>
+            </div>
+
+            <div class="stats-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Élève</th>
+                            <th>Voies validées</th>
+                            <th>Total Points</th>
+                            <th>Note / 20</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prof-table-body">
+                        <!-- Les lignes d'élèves seront générées ici -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // LISTE EXACTE DES ÉLÈVES DE 4E3
+        const INITIAL_STUDENTS = [
+            "Agathe", "Badr", "Selena", "Adam", "Ibrahim-Mamadou", "Tarik", 
+            "Lilya", "Sofia", "Cassandra", "Azilize", "Enzo", "Dave", 
+            "Gabriel", "Marwa", "Divine", "Zola", "Victoria", "Raphaël", 
+            "Fatma", "Anas", "Robin", "Neyl", "Abisha", "Ewan", 
+            "Firdaws", "Fatoumata", "Noeud", "Voie A"
+        ].sort();
+
+        // CARTOGRAPHIE DES VOIES SELON LEMur REEL (Voies 1 à 8)
+        const WALL_CONFIG = [
+            { id: 1, name: "Voie 1", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: 2, name: "Voie 2", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: 3, name: "Voie 3", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
+            { id: 4, name: "Voie 4", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: 5, name: "Voie 5", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: 6, name: "Voie 6", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] },
+            { id: 7, name: "Voie 7", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
+            { id: 8, name: "Voie 8", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }] }
+        ];
+
+        let state = {
+            maxPts: 15,
+            students: {}
+        };
+
+        // INITIALISATION
+        function init() {
+            const savedState = localStorage.getItem('escalade_4e3_db');
+            if (savedState) {
+                state = JSON.parse(savedState);
+            } else {
+                INITIAL_STUDENTS.forEach(name => {
+                    state.students[name] = {};
+                });
+                saveState();
+            }
+
+            populateStudentSelect();
+            renderClimbGrid();
+            renderProfTable();
+        }
+
+        function saveState() {
+            localStorage.setItem('escalade_4e3_db', JSON.stringify(state));
+        }
+
+        function setMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'eleve') {
+                document.querySelectorAll('.mode-btn')[0].classList.add('active');
+                document.getElementById('section-eleve').classList.remove('hidden');
+                document.getElementById('section-prof').classList.add('hidden');
+            } else {
+                document.querySelectorAll('.mode-btn')[1].classList.add('active');
+                document.getElementById('section-prof').classList.remove('hidden');
+                document.getElementById('section-eleve').classList.add('hidden');
+                renderProfTable();
+            }
+        }
+
+        function populateStudentSelect() {
+            const select = document.getElementById('student-select');
+            select.innerHTML = '<option value="">-- Choisis ton nom --</option>';
+            Object.keys(state.students).sort().forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderClimbGrid() {
+            const grid = document.getElementById('climb-grid');
+            grid.innerHTML = '';
+
+            WALL_CONFIG.forEach(way => {
+                const card = document.createElement('div');
+                card.className = 'way-card';
+                
+                let btnsHTML = way.levels.map(lvl => `
+                    <button class="climb-btn ${lvl.id}" id="btn-${way.id}-${lvl.id}" onclick="toggleClimb(${way.id}, '${lvl.id}')">
+                        <span>${lvl.name}</span>
+                        <span class="pts-tag">(${lvl.pts} pt)</span>
+                    </button>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="way-title">${way.name}</div>
+                    <div class="buttons-group">${btnsHTML}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function loadStudentData() {
+            const studentName = document.getElementById('student-select').value;
+            const workspace = document.getElementById('student-workspace');
+
+            if (!studentName) {
+                workspace.classList.add('hidden');
+                return;
+            }
+
+            workspace.classList.remove('hidden');
+            document.getElementById('display-student-name').textContent = studentName;
+
+            updateStudentUI(studentName);
+        }
+
+        function toggleClimb(wayId, levelId) {
+            const studentName = document.getElementById('student-select').value;
+            if (!studentName) return;
+
+            const key = `v${wayId}_${levelId}`;
+            const studentData = state.students[studentName] || {};
+
+            if (studentData[key]) {
+                delete studentData[key];
+            } else {
+                studentData[key] = true;
+            }
+
+            state.students[studentName] = studentData;
+            saveState();
+            updateStudentUI(studentName);
+        }
+
+        function updateStudentUI(studentName) {
+            const studentData = state.students[studentName] || {};
+            let count = 0;
+
+            WALL_CONFIG.forEach(way => {
+                way.levels.forEach(lvl => {
+                    const key = `v${way.id}_${lvl.id}`;
+                    const btn = document.getElementById(`btn-${way.id}-${lvl.id}`);
+                    if (btn) {
+                        if (studentData[key]) {
+                            btn.classList.add('done');
+                            count++;
+                        } else {
+                            btn.classList.remove('done');
+                        }
+                    }
+                });
+            });
+
+            document.getElementById('display-climb-count').textContent = `${count} voie(s) validée(s)`;
+        }
+
+        function calculatePoints(studentData) {
+            let pts = 0;
+            WALL_CONFIG.forEach(way => {
+                way.levels.forEach(lvl => {
+                    const key = `v${way.id}_${lvl.id}`;
+                    if (studentData[key]) {
+                        pts += lvl.pts;
+                    }
+                });
+            });
+            return pts;
+        }
+
+        function updateMaxPts(val) {
+            state.maxPts = parseFloat(val) || 15;
+            saveState();
+            renderProfTable();
+        }
+
+        function renderProfTable() {
+            const tbody = document.getElementById('prof-table-body');
+            tbody.innerHTML = '';
+
+            document.getElementById('max-pts').value = state.maxPts;
+
+            Object.keys(state.students).sort().forEach(name => {
+                const data = state.students[name] || {};
+                const count = Object.keys(data).length;
+                const pts = calculatePoints(data);
+                const note = Math.min(20, (pts / state.maxPts) * 20).toFixed(1);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${name}</strong></td>
+                    <td>${count}</td>
+                    <td><span class="score-badge">${pts} pts</span></td>
+                    <td><span class="note-badge">${note} / 20</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportCSV() {
+            let csv = "Eleve;Voies Validees;Total Points;Note sur 20\n";
+            Object.keys(state.students).sort().forEach(name => {
+                const data = state.students[name] || {};
+                const count = Object.keys(data).length;
+                const pts = calculatePoints(data);
+                const note = Math.min(20, (pts / state.maxPts) * 20).toFixed(1);
+                csv += `"${name}";${count};${pts};${note}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "evaluation_escalade_4e3.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function resetAllData() {
+            if (confirm("Attention : veux-tu vraiment réinitialiser toutes les données d'évaluation de la classe ?")) {
+                localStorage.removeItem('escalade_4e3_db');
+                state.students = {};
+                INITIAL_STUDENTS.forEach(name => {
+                    state.students[name] = {};
+                });
+                saveState();
+                init();
+                alert("Données réinitialisées.");
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
