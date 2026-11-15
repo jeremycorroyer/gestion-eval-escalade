@@ -193,7 +193,7 @@
 
         .pts-tag {
             font-size: 0.75rem;
-            opacity: 0.8;
+            opacity: 0.9;
             font-weight: normal;
         }
 
@@ -212,7 +212,7 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-top: 12px;
         }
 
         .stats-table-wrapper {
@@ -262,10 +262,11 @@
         }
 
         .input-score {
-            width: 60px;
+            width: 65px;
             padding: 6px;
             text-align: center;
             font-weight: bold;
+            margin-bottom: 0;
         }
 
         .details-list {
@@ -297,6 +298,89 @@
         .btn-danger {
             background: #ef4444;
             color: white;
+        }
+
+        /* Styles spécifiques au configurateur de barème */
+        .bareme-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .quick-color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin: 12px 0 18px 0;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .color-box {
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .color-box.tp { background: rgba(71, 85, 105, 0.4); border: 1px solid var(--tp-bg); }
+        .color-box.bleu { background: rgba(37, 99, 235, 0.25); border: 1px solid var(--bleu-bg); }
+        .color-box.vert { background: rgba(22, 163, 74, 0.25); border: 1px solid var(--vert-bg); }
+        .color-box.rouge { background: rgba(220, 38, 38, 0.25); border: 1px solid var(--rouge-bg); }
+
+        .color-box input {
+            margin-bottom: 0;
+            padding: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .bareme-way-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 8px;
+        }
+
+        .bareme-way-row:last-child {
+            border-bottom: none;
+        }
+
+        .bareme-inputs-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mini-lvl-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .mini-lvl-badge.tp { background: var(--tp-bg); }
+        .mini-lvl-badge.bleu { background: var(--bleu-bg); }
+        .mini-lvl-badge.vert { background: var(--vert-bg); }
+        .mini-lvl-badge.rouge { background: var(--rouge-bg); }
+
+        .mini-lvl-badge input {
+            width: 55px;
+            padding: 4px;
+            margin-bottom: 0;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
         }
 
         .hidden { display: none !important; }
@@ -353,29 +437,82 @@
 
         <!-- SECTION PROFESSEUR -->
         <section id="section-prof" class="hidden">
+            
+            <!-- PARAMÉTRAGE DU BARÈME DE LA CLASSE -->
+            <div class="card">
+                <div class="bareme-header" onclick="toggleBaremePanel()">
+                    <div>
+                        <strong style="color: var(--accent); font-size: 1rem;">⚙️ Barème personnalisé (<span id="bareme-class-label">4e3</span>)</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Assouplir ou durcir les points attendus pour cette classe</div>
+                    </div>
+                    <button class="btn-secondary" id="toggle-bareme-btn" style="padding: 6px 12px; font-size: 0.8rem;">Afficher / Modifier</button>
+                </div>
+
+                <div id="bareme-panel" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="margin:0;">Plafond note totale (/):</label>
+                            <input type="number" id="max-total-input" class="input-score" style="width: 70px;" value="40" min="10" max="100" step="1" onchange="updateClassSettings()">
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">
+                            Total possible sur le mur : <strong id="wall-max-pts" style="color: var(--accent);">33.5</strong> pts
+                        </div>
+                        <button class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem;" onclick="resetBaremeToDefault()">Barème standard</button>
+                    </div>
+
+                    <label>1. Ajustement rapide par couleur (applique à toutes les voies) :</label>
+                    <div class="quick-color-grid">
+                        <div class="color-box tp">
+                            <span>Toute prise</span>
+                            <input type="number" id="bulk-tp" step="0.25" min="0" placeholder="ex: 0.5" onchange="applyBulkLevelPts('tp', this.value)">
+                        </div>
+                        <div class="color-box bleu">
+                            <span>Bleue</span>
+                            <input type="number" id="bulk-bleu" step="0.25" min="0" placeholder="ex: 1" onchange="applyBulkLevelPts('bleu', this.value)">
+                        </div>
+                        <div class="color-box vert">
+                            <span>Verte</span>
+                            <input type="number" id="bulk-vert" step="0.25" min="0" placeholder="ex: 2" onchange="applyBulkLevelPts('vert', this.value)">
+                        </div>
+                        <div class="color-box rouge">
+                            <span>Rouge</span>
+                            <input type="number" id="bulk-rouge" step="0.25" min="0" placeholder="ex: 3" onchange="applyBulkLevelPts('rouge', this.value)">
+                        </div>
+                    </div>
+
+                    <label>2. Ajustement fin voie par voie :</label>
+                    <div id="bareme-ways-list">
+                        <!-- Généré dynamiquement -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- GESTION DES ÉLÈVES -->
             <div class="card">
                 <label>Gestion des élèves de la classe :</label>
                 <div style="margin-bottom: 12px;">
-                    <textarea id="import-names-input" rows="3" placeholder="Coller une liste de prénoms (un par ligne ou séparés par des virgules)..."></textarea>
+                    <textarea id="import-names-input" rows="2" placeholder="Coller une liste de prénoms (un par ligne ou séparés par des virgules)..."></textarea>
                     <button class="btn-secondary" onclick="importStudents()">Importer / Ajouter ces élèves</button>
                 </div>
                 
                 <div class="prof-controls">
                     <button class="btn-action" onclick="exportCSV()">Exporter la classe en CSV</button>
-                    <button class="btn-action btn-danger" onclick="resetCurrentClassData()">Réinitialiser cette classe</button>
+                    <button class="btn-action btn-danger" onclick="resetCurrentClassData()">Réinitialiser les notes de cette classe</button>
                 </div>
             </div>
 
+            <!-- TABLEAU RÉCAPITULATIF -->
             <div class="stats-table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>Élève</th>
                             <th>Voies validées (Détail)</th>
-                            <th>Voies (/33.5)</th>
+                            <th>Voies (/<span id="th-max-wall">33.5</span>)</th>
                             <th>Engagement (/5)</th>
                             <th>Sécurité (/5)</th>
-                            <th>Total / 40</th>
+                            <th>Total / <span id="th-max-total">40</span></th>
                         </tr>
                     </thead>
                     <tbody id="prof-table-body">
@@ -397,7 +534,7 @@
             "Firdaws", "Fatoumata", "Noeud"
         ];
 
-        const WALL_CONFIG = [
+        const DEFAULT_WALL_CONFIG = [
             { id: "A", name: "Voie A", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
             { id: "B", name: "Voie B", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }] },
             { id: "C", name: "Voie C", levels: [{ id: "tp", name: "Toute prise", pts: 0.5 }, { id: "bleu", name: "Bleue", pts: 1 }, { id: "vert", name: "Verte", pts: 2 }, { id: "rouge", name: "Rouge", pts: 3 }] },
@@ -409,28 +546,52 @@
 
         let db = {
             activeClass: DEFAULT_CLASS_NAME,
-            classes: {}
+            classes: {},
+            baremes: {} // Stocke la config du mur et le plafond par classe
         };
+
+        function cloneDefaultWall() {
+            return JSON.parse(JSON.stringify(DEFAULT_WALL_CONFIG));
+        }
+
+        function ensureClassBareme(className) {
+            if (!db.baremes) db.baremes = {};
+            if (!db.baremes[className]) {
+                db.baremes[className] = {
+                    maxTotal: 40,
+                    wall: cloneDefaultWall()
+                };
+            }
+        }
+
+        function getActiveBareme() {
+            ensureClassBareme(db.activeClass);
+            return db.baremes[db.activeClass];
+        }
 
         function init() {
             const savedDB = localStorage.getItem('escalade_multiclass_db');
             if (savedDB) {
                 db = JSON.parse(savedDB);
+                if (!db.baremes) db.baremes = {};
             } else {
                 db.classes[DEFAULT_CLASS_NAME] = {};
                 DEFAULT_STUDENTS.forEach(name => {
                     db.classes[DEFAULT_CLASS_NAME][name] = { climbs: {}, engagement: 3, securite: 3 };
                 });
+                ensureClassBareme(DEFAULT_CLASS_NAME);
                 saveDB();
             }
 
             if (!db.classes[db.activeClass]) {
                 db.activeClass = Object.keys(db.classes)[0] || DEFAULT_CLASS_NAME;
             }
+            ensureClassBareme(db.activeClass);
 
             populateClassSelect();
             populateStudentSelect();
             renderClimbGrid();
+            renderBaremeEditor();
             renderProfTable();
             updateHeaderTitle();
         }
@@ -440,7 +601,8 @@
         }
 
         function updateHeaderTitle() {
-            document.getElementById('app-title').textContent = `Escalade EPS - Classe : ${db.activeClass}`;
+            document.getElementById('app-title').textContent = `Escalade EPS - ${db.activeClass}`;
+            document.getElementById('bareme-class-label').textContent = db.activeClass;
         }
 
         function populateClassSelect() {
@@ -458,8 +620,11 @@
         function changeActiveClasse(className) {
             if (!className) return;
             db.activeClass = className;
+            ensureClassBareme(className);
             saveDB();
             populateStudentSelect();
+            renderClimbGrid();
+            renderBaremeEditor();
             renderProfTable();
             updateHeaderTitle();
             document.getElementById('student-workspace').classList.add('hidden');
@@ -475,16 +640,130 @@
                 return;
             }
             db.classes[cleanName] = {};
+            ensureClassBareme(cleanName);
             db.activeClass = cleanName;
             saveDB();
             populateClassSelect();
             populateStudentSelect();
+            renderClimbGrid();
+            renderBaremeEditor();
             renderProfTable();
             updateHeaderTitle();
             document.getElementById('student-workspace').classList.add('hidden');
             document.getElementById('student-select').value = "";
         }
 
+        /* --- GESTION DU BARÈME PAR CLASSE --- */
+        function toggleBaremePanel() {
+            const panel = document.getElementById('bareme-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function renderBaremeEditor() {
+            const bareme = getActiveBareme();
+            document.getElementById('max-total-input').value = bareme.maxTotal;
+
+            // Calcul du max théorique du mur
+            let maxWall = 0;
+            bareme.wall.forEach(way => {
+                way.levels.forEach(lvl => { maxWall += parseFloat(lvl.pts) || 0; });
+            });
+            const formattedMaxWall = Number.isInteger(maxWall) ? maxWall : maxWall.toFixed(1);
+            document.getElementById('wall-max-pts').textContent = formattedMaxWall;
+            document.getElementById('th-max-wall').textContent = formattedMaxWall;
+            document.getElementById('th-max-total').textContent = bareme.maxTotal;
+
+            // Pré-remplir les champs globaux par couleur si toutes les voies ont la même valeur pour cette couleur
+            ['tp', 'bleu', 'vert', 'rouge'].forEach(lvlId => {
+                const vals = [];
+                bareme.wall.forEach(w => {
+                    const found = w.levels.find(l => l.id === lvlId);
+                    if (found) vals.push(found.pts);
+                });
+                const unique = [...new Set(vals)];
+                const bulkInput = document.getElementById(`bulk-${lvlId}`);
+                bulkInput.value = unique.length === 1 ? unique[0] : '';
+            });
+
+            // Rendu voie par voie
+            const container = document.getElementById('bareme-ways-list');
+            container.innerHTML = '';
+
+            bareme.wall.forEach((way, wIdx) => {
+                const row = document.createElement('div');
+                row.className = 'bareme-way-row';
+
+                const inputsHtml = way.levels.map((lvl, lIdx) => `
+                    <div class="mini-lvl-badge ${lvl.id}">
+                        <span>${lvl.name}</span>
+                        <input type="number" step="0.25" min="0" value="${lvl.pts}" 
+                               onchange="updateSingleLevelPts(${wIdx}, ${lIdx}, this.value)">
+                    </div>
+                `).join('');
+
+                row.innerHTML = `
+                    <strong style="min-width: 70px;">${way.name}</strong>
+                    <div class="bareme-inputs-group">${inputsHtml}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updateClassSettings() {
+            const bareme = getActiveBareme();
+            const val = parseFloat(document.getElementById('max-total-input').value);
+            if (!isNaN(val) && val > 0) {
+                bareme.maxTotal = val;
+                saveDB();
+                renderBaremeEditor();
+                renderProfTable();
+            }
+        }
+
+        function applyBulkLevelPts(levelId, rawValue) {
+            const val = parseFloat(rawValue);
+            if (isNaN(val) || val < 0) return;
+            const bareme = getActiveBareme();
+            bareme.wall.forEach(way => {
+                way.levels.forEach(lvl => {
+                    if (lvl.id === levelId) {
+                        lvl.pts = val;
+                    }
+                });
+            });
+            saveDB();
+            refreshAllViewsAfterBaremeChange();
+        }
+
+        function updateSingleLevelPts(wayIndex, levelIndex, rawValue) {
+            const val = parseFloat(rawValue);
+            if (isNaN(val) || val < 0) return;
+            const bareme = getActiveBareme();
+            bareme.wall[wayIndex].levels[levelIndex].pts = val;
+            saveDB();
+            refreshAllViewsAfterBaremeChange();
+        }
+
+        function resetBaremeToDefault() {
+            if (confirm(`Remettre le barème standard pour la classe ${db.activeClass} ?`)) {
+                db.baremes[db.activeClass] = {
+                    maxTotal: 40,
+                    wall: cloneDefaultWall()
+                };
+                saveDB();
+                refreshAllViewsAfterBaremeChange();
+            }
+        }
+
+        function refreshAllViewsAfterBaremeChange() {
+            renderBaremeEditor();
+            renderClimbGrid();
+            renderProfTable();
+            const currentStudent = document.getElementById('student-select').value;
+            if (currentStudent) updateStudentUI(currentStudent);
+        }
+
+        /* --- GESTION ÉLÈVES & TABLEAU --- */
         function importStudents() {
             const text = document.getElementById('import-names-input').value.trim();
             if (!text) {
@@ -492,7 +771,6 @@
                 return;
             }
 
-            // Découpage par ligne ou par virgule
             const names = text.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
             let addedCount = 0;
 
@@ -516,10 +794,14 @@
                 document.querySelectorAll('.mode-btn')[0].classList.add('active');
                 document.getElementById('section-eleve').classList.remove('hidden');
                 document.getElementById('section-prof').classList.add('hidden');
+                renderClimbGrid();
+                const currentStudent = document.getElementById('student-select').value;
+                if (currentStudent) updateStudentUI(currentStudent);
             } else {
                 document.querySelectorAll('.mode-btn')[1].classList.add('active');
                 document.getElementById('section-prof').classList.remove('hidden');
                 document.getElementById('section-eleve').classList.add('hidden');
+                renderBaremeEditor();
                 renderProfTable();
             }
         }
@@ -539,15 +821,16 @@
         function renderClimbGrid() {
             const grid = document.getElementById('climb-grid');
             grid.innerHTML = '';
+            const bareme = getActiveBareme();
 
-            WALL_CONFIG.forEach(way => {
+            bareme.wall.forEach(way => {
                 const card = document.createElement('div');
                 card.className = 'way-card';
                 
                 let btnsHTML = way.levels.map(lvl => `
                     <button class="climb-btn ${lvl.id}" id="btn-${way.id}-${lvl.id}" onclick="toggleClimb('${way.id}', '${lvl.id}')">
                         <span>${lvl.name}</span>
-                        <span class="pts-tag">(${lvl.pts} pt)</span>
+                        <span class="pts-tag">(${lvl.pts} pt${lvl.pts > 1 ? 's' : ''})</span>
                     </button>
                 `).join('');
 
@@ -596,23 +879,26 @@
         function calculateClimbPoints(climbsData) {
             let pts = 0;
             if (!climbsData) return 0;
-            WALL_CONFIG.forEach(way => {
+            const bareme = getActiveBareme();
+
+            bareme.wall.forEach(way => {
                 way.levels.forEach(lvl => {
                     const key = `v${way.id}_${lvl.id}`;
                     if (climbsData[key]) {
-                        pts += lvl.pts;
+                        pts += parseFloat(lvl.pts) || 0;
                     }
                 });
             });
-            return pts;
+            return Math.round(pts * 100) / 100;
         }
 
         function updateStudentUI(studentName) {
             const studentData = db.classes[db.activeClass][studentName];
             const climbs = studentData.climbs || {};
+            const bareme = getActiveBareme();
             let count = 0;
 
-            WALL_CONFIG.forEach(way => {
+            bareme.wall.forEach(way => {
                 way.levels.forEach(lvl => {
                     const key = `v${way.id}_${lvl.id}`;
                     const btn = document.getElementById(`btn-${way.id}-${lvl.id}`);
@@ -644,6 +930,7 @@
             tbody.innerHTML = '';
 
             const studentsObj = db.classes[db.activeClass] || {};
+            const bareme = getActiveBareme();
 
             Object.keys(studentsObj).sort().forEach(name => {
                 const student = studentsObj[name];
@@ -651,7 +938,7 @@
                 const climbPts = calculateClimbPoints(climbs);
                 
                 let detailsText = [];
-                WALL_CONFIG.forEach(way => {
+                bareme.wall.forEach(way => {
                     way.levels.forEach(lvl => {
                         if (climbs[`v${way.id}_${lvl.id}`]) {
                             detailsText.push(`${way.name} (${lvl.name})`);
@@ -662,7 +949,7 @@
 
                 const engagement = student.engagement !== undefined ? student.engagement : 3;
                 const securite = student.securite !== undefined ? student.securite : 3;
-                const totalNote = Math.min(40, climbPts + engagement + securite).toFixed(1);
+                const totalNote = Math.min(bareme.maxTotal, climbPts + engagement + securite).toFixed(1);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -671,7 +958,7 @@
                     <td><span class="score-badge">${climbPts}</span></td>
                     <td><input type="number" class="input-score" value="${engagement}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'engagement', this.value); renderProfTable();"></td>
                     <td><input type="number" class="input-score" value="${securite}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'securite', this.value); renderProfTable();"></td>
-                    <td><span class="note-badge">${totalNote} / 40</span></td>
+                    <td><span class="note-badge">${totalNote} / ${bareme.maxTotal}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -679,7 +966,8 @@
 
         function exportCSV() {
             const className = db.activeClass;
-            let csv = `Classe;Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur 40\n`;
+            const bareme = getActiveBareme();
+            let csv = `Classe;Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur ${bareme.maxTotal}\n`;
             const studentsObj = db.classes[className] || {};
 
             Object.keys(studentsObj).sort().forEach(name => {
@@ -688,7 +976,7 @@
                 const climbPts = calculateClimbPoints(climbs);
                 
                 let detailsText = [];
-                WALL_CONFIG.forEach(way => {
+                bareme.wall.forEach(way => {
                     way.levels.forEach(lvl => {
                         if (climbs[`v${way.id}_${lvl.id}`]) {
                             detailsText.push(`${way.name}-${lvl.name}`);
@@ -698,7 +986,7 @@
 
                 const engagement = student.engagement !== undefined ? student.engagement : 3;
                 const securite = student.securite !== undefined ? student.securite : 3;
-                const totalNote = Math.min(40, climbPts + engagement + securite).toFixed(1);
+                const totalNote = Math.min(bareme.maxTotal, climbPts + engagement + securite).toFixed(1);
 
                 csv += `"${className}";"${name}";"${detailsText.join(' / ')}";${climbPts};${engagement};${securite};${totalNote}\n`;
             });
