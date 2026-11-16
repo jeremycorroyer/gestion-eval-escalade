@@ -80,7 +80,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 0 auto;
             padding: 16px;
         }
@@ -210,7 +210,7 @@
 
         .prof-controls {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             margin-top: 12px;
         }
@@ -272,27 +272,29 @@
         .details-list {
             font-size: 0.75rem;
             color: var(--text-muted);
-            max-width: 250px;
+            max-width: 220px;
         }
 
         .btn-action {
             background: var(--accent);
             color: #0f172a;
             border: none;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: 700;
             cursor: pointer;
+            font-size: 0.85rem;
         }
 
         .btn-secondary {
             background: #475569;
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: 700;
             cursor: pointer;
+            font-size: 0.85rem;
         }
 
         .btn-danger {
@@ -300,7 +302,63 @@
             color: white;
         }
 
-        /* Styles spécifiques au configurateur de barème */
+        .cards-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .card-btn {
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .card-btn.yellow { background-color: #facc15; color: #713f12; }
+        .card-btn.red { background-color: #ef4444; color: #ffffff; }
+
+        .sanction-status {
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .status-yellow-1 { background: rgba(250, 204, 21, 0.2); color: #facc15; border: 1px solid #facc15; }
+        .status-yellow-2 { background: rgba(234, 179, 8, 0.3); color: #fde047; border: 1px solid #eab308; }
+        .status-red-1 { background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #ef4444; }
+        .status-red-2 { background: rgba(185, 28, 28, 0.4); color: #fca5a5; border: 1px solid #b91c1c; }
+
+        .student-row-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn-icon-danger {
+            background: transparent;
+            color: #ef4444;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 2px 6px;
+        }
+
         .bareme-header {
             display: flex;
             justify-content: space-between;
@@ -349,9 +407,7 @@
             gap: 8px;
         }
 
-        .bareme-way-row:last-child {
-            border-bottom: none;
-        }
+        .bareme-way-row:last-child { border-bottom: none; }
 
         .bareme-inputs-group {
             display: flex;
@@ -402,9 +458,7 @@
         <div class="card">
             <label for="class-select">Classe active :</label>
             <div style="display: flex; gap: 10px;">
-                <select id="class-select" onchange="changeActiveClasse(this.value)" style="margin-bottom:0; flex:1;">
-                    <!-- Généré dynamiquement -->
-                </select>
+                <select id="class-select" onchange="changeActiveClasse(this.value)" style="margin-bottom:0; flex:1;"></select>
                 <button class="btn-secondary" onclick="createNewClassPrompt()">+ Nouvelle classe</button>
             </div>
         </div>
@@ -429,95 +483,103 @@
                     </div>
                 </div>
 
-                <div class="climb-grid" id="climb-grid">
-                    <!-- Généré dynamiquement -->
-                </div>
+                <div class="climb-grid" id="climb-grid"></div>
             </div>
         </section>
 
         <!-- SECTION PROFESSEUR -->
         <section id="section-prof" class="hidden">
             
-            <!-- PARAMÉTRAGE DU BARÈME DE LA CLASSE -->
+            <!-- GESTION DE LA CLASSE -->
+            <div class="card">
+                <label>Gestion de la classe active :</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+                    <input type="text" id="rename-class-input" style="margin-bottom:0; flex:1;" placeholder="Nom de la classe">
+                    <button class="btn-action" onclick="renameCurrentClass()">Renommer</button>
+                </div>
+
+                <div class="prof-controls">
+                    <button class="btn-action" onclick="exportCSV()">Exporter la classe (CSV)</button>
+                    <button class="btn-secondary" onclick="archiveNewYearReset()">🔄 Nouvelle année (Vider notes)</button>
+                    <button class="btn-action btn-danger" onclick="deleteCurrentClass()">Supprimer cette classe</button>
+                </div>
+            </div>
+
+            <!-- PARAMÉTRAGE DU BARÈME -->
             <div class="card">
                 <div class="bareme-header" onclick="toggleBaremePanel()">
                     <div>
                         <strong style="color: var(--accent); font-size: 1rem;">⚙️ Barème personnalisé (<span id="bareme-class-label">4e3</span>)</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);">Assouplir ou durcir les points attendus pour cette classe</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Ajuster les points par couleur ou par voie</div>
                     </div>
-                    <button class="btn-secondary" id="toggle-bareme-btn" style="padding: 6px 12px; font-size: 0.8rem;">Afficher / Modifier</button>
+                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">Afficher / Modifier</button>
                 </div>
 
                 <div id="bareme-panel" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px;">
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <label style="margin:0;">Plafond note totale (/):</label>
+                            <label style="margin:0;">Plafond total (/):</label>
                             <input type="number" id="max-total-input" class="input-score" style="width: 70px;" value="40" min="10" max="100" step="1" onchange="updateClassSettings()">
                         </div>
                         <div style="font-size: 0.85rem; color: var(--text-muted);">
-                            Total possible sur le mur : <strong id="wall-max-pts" style="color: var(--accent);">33.5</strong> pts
+                            Total max mur : <strong id="wall-max-pts" style="color: var(--accent);">33.5</strong> pts
                         </div>
                         <button class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem;" onclick="resetBaremeToDefault()">Barème standard</button>
                     </div>
 
-                    <label>1. Ajustement rapide par couleur (applique à toutes les voies) :</label>
+                    <label>Ajustement rapide par couleur :</label>
                     <div class="quick-color-grid">
                         <div class="color-box tp">
                             <span>Toute prise</span>
-                            <input type="number" id="bulk-tp" step="0.25" min="0" placeholder="ex: 0.5" onchange="applyBulkLevelPts('tp', this.value)">
+                            <input type="number" id="bulk-tp" step="0.25" min="0" onchange="applyBulkLevelPts('tp', this.value)">
                         </div>
                         <div class="color-box bleu">
                             <span>Bleue</span>
-                            <input type="number" id="bulk-bleu" step="0.25" min="0" placeholder="ex: 1" onchange="applyBulkLevelPts('bleu', this.value)">
+                            <input type="number" id="bulk-bleu" step="0.25" min="0" onchange="applyBulkLevelPts('bleu', this.value)">
                         </div>
                         <div class="color-box vert">
                             <span>Verte</span>
-                            <input type="number" id="bulk-vert" step="0.25" min="0" placeholder="ex: 2" onchange="applyBulkLevelPts('vert', this.value)">
+                            <input type="number" id="bulk-vert" step="0.25" min="0" onchange="applyBulkLevelPts('vert', this.value)">
                         </div>
                         <div class="color-box rouge">
                             <span>Rouge</span>
-                            <input type="number" id="bulk-rouge" step="0.25" min="0" placeholder="ex: 3" onchange="applyBulkLevelPts('rouge', this.value)">
+                            <input type="number" id="bulk-rouge" step="0.25" min="0" onchange="applyBulkLevelPts('rouge', this.value)">
                         </div>
                     </div>
 
-                    <label>2. Ajustement fin voie par voie :</label>
-                    <div id="bareme-ways-list">
-                        <!-- Généré dynamiquement -->
-                    </div>
+                    <label>Ajustement fin voie par voie :</label>
+                    <div id="bareme-ways-list"></div>
                 </div>
             </div>
 
-            <!-- GESTION DES ÉLÈVES -->
+            <!-- GESTION ÉLÈVES & ARRIVÉES / DÉPARTS -->
             <div class="card">
-                <label>Gestion des élèves de la classe :</label>
+                <label>Gestion des élèves (Arrivées / Départs) :</label>
                 <div style="margin-bottom: 12px;">
-                    <textarea id="import-names-input" rows="2" placeholder="Coller une liste de prénoms (un par ligne ou séparés par des virgules)..."></textarea>
-                    <button class="btn-secondary" onclick="importStudents()">Importer / Ajouter ces élèves</button>
+                    <textarea id="import-names-input" rows="2" placeholder="Ajouter un ou plusieurs prénoms (séparés par des virgules ou retours à la ligne)..."></textarea>
+                    <button class="btn-secondary" onclick="importStudents()">+ Ajouter ces élèves</button>
                 </div>
                 
-                <div class="prof-controls">
-                    <button class="btn-action" onclick="exportCSV()">Exporter la classe en CSV</button>
-                    <button class="btn-action btn-danger" onclick="resetCurrentClassData()">Réinitialiser les notes de cette classe</button>
-                </div>
+                <label style="margin-top: 14px;">Liste actuelle (supprimer un élève parti) :</label>
+                <div id="students-admin-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
 
-            <!-- TABLEAU RÉCAPITULATIF -->
+            <!-- TABLEAU RÉCAPITULATIF AVEC CARTONS ET IMPACT AUTOMATIQUE -->
             <div class="stats-table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>Élève</th>
-                            <th>Voies validées (Détail)</th>
+                            <th>Voies validées</th>
+                            <th>Sanctions (Cartons)</th>
                             <th>Voies (/<span id="th-max-wall">33.5</span>)</th>
                             <th>Engagement (/5)</th>
                             <th>Sécurité (/5)</th>
                             <th>Total / <span id="th-max-total">40</span></th>
                         </tr>
                     </thead>
-                    <tbody id="prof-table-body">
-                        <!-- Généré dynamiquement -->
-                    </tbody>
+                    <tbody id="prof-table-body"></tbody>
                 </table>
             </div>
         </section>
@@ -547,7 +609,7 @@
         let db = {
             activeClass: DEFAULT_CLASS_NAME,
             classes: {},
-            baremes: {} // Stocke la config du mur et le plafond par classe
+            baremes: {}
         };
 
         function cloneDefaultWall() {
@@ -569,15 +631,45 @@
             return db.baremes[db.activeClass];
         }
 
+        function ensureStudentProps(studentObj) {
+            if (!studentObj.climbs) studentObj.climbs = {};
+            if (studentObj.baseEngagement === undefined) studentObj.baseEngagement = 3; // Note d'engagement initiale
+            if (studentObj.securite === undefined) studentObj.securite = 3;
+            if (studentObj.yellowCards === undefined) studentObj.yellowCards = 0;
+            if (studentObj.redCards === undefined) studentObj.redCards = 0;
+        }
+
+        // Calcule l'engagement effectif en fonction des cartons
+        function getComputedEngagement(student) {
+            let base = student.baseEngagement !== undefined ? student.baseEngagement : 3;
+            let y = student.yellowCards || 0;
+            let r = student.redCards || 0;
+
+            let penalty = 0;
+            if (y === 1) penalty += 0.5;      // 1er Jaune : -0.5
+            if (y === 2) penalty += 1.5;      // 2e Jaune (Avertissement grave) : -1.5 total
+            if (r === 1) penalty += 2.0;      // 1er Rouge (Out séance) : -2.0 total
+            if (r === 2) {
+                return 0;                     // 2e Rouge (Out séquence & permanence) : 0 point direct
+            }
+
+            return Math.max(0, base - penalty);
+        }
+
         function init() {
             const savedDB = localStorage.getItem('escalade_multiclass_db');
             if (savedDB) {
                 db = JSON.parse(savedDB);
                 if (!db.baremes) db.baremes = {};
+                Object.keys(db.classes).forEach(cls => {
+                    Object.keys(db.classes[cls]).forEach(stu => {
+                        ensureStudentProps(db.classes[cls][stu]);
+                    });
+                });
             } else {
                 db.classes[DEFAULT_CLASS_NAME] = {};
                 DEFAULT_STUDENTS.forEach(name => {
-                    db.classes[DEFAULT_CLASS_NAME][name] = { climbs: {}, engagement: 3, securite: 3 };
+                    db.classes[DEFAULT_CLASS_NAME][name] = { climbs: {}, baseEngagement: 3, securite: 3, yellowCards: 0, redCards: 0 };
                 });
                 ensureClassBareme(DEFAULT_CLASS_NAME);
                 saveDB();
@@ -592,6 +684,7 @@
             populateStudentSelect();
             renderClimbGrid();
             renderBaremeEditor();
+            renderStudentsAdminList();
             renderProfTable();
             updateHeaderTitle();
         }
@@ -603,6 +696,7 @@
         function updateHeaderTitle() {
             document.getElementById('app-title').textContent = `Escalade EPS - ${db.activeClass}`;
             document.getElementById('bareme-class-label').textContent = db.activeClass;
+            document.getElementById('rename-class-input').value = db.activeClass;
         }
 
         function populateClassSelect() {
@@ -625,6 +719,7 @@
             populateStudentSelect();
             renderClimbGrid();
             renderBaremeEditor();
+            renderStudentsAdminList();
             renderProfTable();
             updateHeaderTitle();
             document.getElementById('student-workspace').classList.add('hidden');
@@ -647,23 +742,166 @@
             populateStudentSelect();
             renderClimbGrid();
             renderBaremeEditor();
+            renderStudentsAdminList();
             renderProfTable();
             updateHeaderTitle();
             document.getElementById('student-workspace').classList.add('hidden');
             document.getElementById('student-select').value = "";
         }
 
-        /* --- GESTION DU BARÈME PAR CLASSE --- */
+        function renameCurrentClass() {
+            const newName = document.getElementById('rename-class-input').value.trim();
+            if (!newName) return;
+            if (newName === db.activeClass) return;
+            if (db.classes[newName]) {
+                alert("Une classe porte déjà ce nom.");
+                return;
+            }
+
+            db.classes[newName] = db.classes[db.activeClass];
+            delete db.classes[db.activeClass];
+
+            if (db.baremes[db.activeClass]) {
+                db.baremes[newName] = db.baremes[db.activeClass];
+                delete db.baremes[db.activeClass];
+            }
+
+            db.activeClass = newName;
+            saveDB();
+            populateClassSelect();
+            populateStudentSelect();
+            updateHeaderTitle();
+            renderProfTable();
+            alert(`Classe renommée en "${newName}" avec succès !`);
+        }
+
+        function deleteCurrentClass() {
+            const current = db.activeClass;
+            if (Object.keys(db.classes).length <= 1) {
+                alert("Impossible de supprimer la dernière classe restante.");
+                return;
+            }
+
+            if (confirm(`⚠️ Voulez-vous vraiment supprimer définitivement la classe "${current}" ?`)) {
+                delete db.classes[current];
+                if (db.baremes[current]) delete db.baremes[current];
+                db.activeClass = Object.keys(db.classes)[0];
+                saveDB();
+                init();
+            }
+        }
+
+        function archiveNewYearReset() {
+            if (confirm(`🔄 Préparation Nouvelle Année : Réinitialiser les notes de la classe ${db.activeClass} ?`)) {
+                const studentsObj = db.classes[db.activeClass];
+                Object.keys(studentsObj).forEach(name => {
+                    studentsObj[name].climbs = {};
+                    studentsObj[name].baseEngagement = 3;
+                    studentsObj[name].securite = 3;
+                    studentsObj[name].yellowCards = 0;
+                    studentsObj[name].redCards = 0;
+                });
+                saveDB();
+                renderProfTable();
+                const currentStudent = document.getElementById('student-select').value;
+                if (currentStudent) updateStudentUI(currentStudent);
+                alert("Notes réinitialisées pour la nouvelle année !");
+            }
+        }
+
+        /* --- GESTION DES SANCTIONS --- */
+        function addCard(studentName, type) {
+            const student = db.classes[db.activeClass][studentName];
+            if (!student) return;
+
+            if (type === 'yellow') {
+                if (student.yellowCards < 2) student.yellowCards++;
+                else student.yellowCards = 0;
+            } else if (type === 'red') {
+                if (student.redCards < 2) student.redCards++;
+                else student.redCards = 0;
+            }
+            saveDB();
+            renderProfTable();
+        }
+
+        function getSanctionStatusHtml(student) {
+            const y = student.yellowCards || 0;
+            const r = student.redCards || 0;
+
+            if (r === 2) return `<span class="sanction-status status-red-2">🔴 Out Séquence & Perm</span>`;
+            if (r === 1) return `<span class="sanction-status status-red-1">🔴 Out Séance</span>`;
+            if (y === 2) return `<span class="sanction-status status-yellow-2">⚠️ Avert. Grave (2 Jaunes)</span>`;
+            if (y === 1) return `<span class="sanction-status status-yellow-1">🟨 Avertissement simple</span>`;
+            return `<span style="color:var(--text-muted); font-size:0.75rem;">RAS</span>`;
+        }
+
+        /* --- GESTION ÉLÈVES --- */
+        function importStudents() {
+            const text = document.getElementById('import-names-input').value.trim();
+            if (!text) return;
+
+            const names = text.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
+            let addedCount = 0;
+
+            names.forEach(name => {
+                if (!db.classes[db.activeClass][name]) {
+                    db.classes[db.activeClass][name] = { climbs: {}, baseEngagement: 3, securite: 3, yellowCards: 0, redCards: 0 };
+                    addedCount++;
+                }
+            });
+
+            saveDB();
+            populateStudentSelect();
+            renderStudentsAdminList();
+            renderProfTable();
+            document.getElementById('import-names-input').value = "";
+            alert(`${addedCount} élève(s) ajouté(s) !`);
+        }
+
+        function removeStudent(studentName) {
+            if (confirm(`Retirer l'élève ${studentName} de la classe ?`)) {
+                delete db.classes[db.activeClass][studentName];
+                saveDB();
+                populateStudentSelect();
+                renderStudentsAdminList();
+                renderProfTable();
+                document.getElementById('student-workspace').classList.add('hidden');
+                document.getElementById('student-select').value = "";
+            }
+        }
+
+        function renderStudentsAdminList() {
+            const container = document.getElementById('students-admin-list');
+            container.innerHTML = '';
+            const studentsObj = db.classes[db.activeClass] || {};
+            const names = Object.keys(studentsObj).sort();
+
+            if (names.length === 0) {
+                container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); padding:6px;">Aucun élève.</div>';
+                return;
+            }
+
+            names.forEach(name => {
+                const row = document.createElement('div');
+                row.className = 'student-row-admin';
+                row.innerHTML = `
+                    <span>${name}</span>
+                    <button class="btn-icon-danger" onclick="removeStudent('${name}')">✕ Supprimer</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        /* --- BARÉMES --- */
         function toggleBaremePanel() {
-            const panel = document.getElementById('bareme-panel');
-            panel.classList.toggle('hidden');
+            document.getElementById('bareme-panel').classList.toggle('hidden');
         }
 
         function renderBaremeEditor() {
             const bareme = getActiveBareme();
             document.getElementById('max-total-input').value = bareme.maxTotal;
 
-            // Calcul du max théorique du mur
             let maxWall = 0;
             bareme.wall.forEach(way => {
                 way.levels.forEach(lvl => { maxWall += parseFloat(lvl.pts) || 0; });
@@ -673,7 +911,6 @@
             document.getElementById('th-max-wall').textContent = formattedMaxWall;
             document.getElementById('th-max-total').textContent = bareme.maxTotal;
 
-            // Pré-remplir les champs globaux par couleur si toutes les voies ont la même valeur pour cette couleur
             ['tp', 'bleu', 'vert', 'rouge'].forEach(lvlId => {
                 const vals = [];
                 bareme.wall.forEach(w => {
@@ -681,11 +918,9 @@
                     if (found) vals.push(found.pts);
                 });
                 const unique = [...new Set(vals)];
-                const bulkInput = document.getElementById(`bulk-${lvlId}`);
-                bulkInput.value = unique.length === 1 ? unique[0] : '';
+                document.getElementById(`bulk-${lvlId}`).value = unique.length === 1 ? unique[0] : '';
             });
 
-            // Rendu voie par voie
             const container = document.getElementById('bareme-ways-list');
             container.innerHTML = '';
 
@@ -726,9 +961,7 @@
             const bareme = getActiveBareme();
             bareme.wall.forEach(way => {
                 way.levels.forEach(lvl => {
-                    if (lvl.id === levelId) {
-                        lvl.pts = val;
-                    }
+                    if (lvl.id === levelId) lvl.pts = val;
                 });
             });
             saveDB();
@@ -746,10 +979,7 @@
 
         function resetBaremeToDefault() {
             if (confirm(`Remettre le barème standard pour la classe ${db.activeClass} ?`)) {
-                db.baremes[db.activeClass] = {
-                    maxTotal: 40,
-                    wall: cloneDefaultWall()
-                };
+                db.baremes[db.activeClass] = { maxTotal: 40, wall: cloneDefaultWall() };
                 saveDB();
                 refreshAllViewsAfterBaremeChange();
             }
@@ -763,31 +993,7 @@
             if (currentStudent) updateStudentUI(currentStudent);
         }
 
-        /* --- GESTION ÉLÈVES & TABLEAU --- */
-        function importStudents() {
-            const text = document.getElementById('import-names-input').value.trim();
-            if (!text) {
-                alert("Veuillez coller une liste de prénoms.");
-                return;
-            }
-
-            const names = text.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
-            let addedCount = 0;
-
-            names.forEach(name => {
-                if (!db.classes[db.activeClass][name]) {
-                    db.classes[db.activeClass][name] = { climbs: {}, engagement: 3, securite: 3 };
-                    addedCount++;
-                }
-            });
-
-            saveDB();
-            populateStudentSelect();
-            renderProfTable();
-            document.getElementById('import-names-input').value = "";
-            alert(`${addedCount} élève(s) ajouté(s) à la classe ${db.activeClass} !`);
-        }
-
+        /* --- NAVIGATION --- */
         function setMode(mode) {
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             if (mode === 'eleve') {
@@ -802,6 +1008,7 @@
                 document.getElementById('section-prof').classList.remove('hidden');
                 document.getElementById('section-eleve').classList.add('hidden');
                 renderBaremeEditor();
+                renderStudentsAdminList();
                 renderProfTable();
             }
         }
@@ -861,9 +1068,7 @@
             if (!studentName) return;
 
             const classData = db.classes[db.activeClass];
-            if (!classData[studentName].climbs) {
-                classData[studentName].climbs = {};
-            }
+            ensureStudentProps(classData[studentName]);
 
             const key = `v${wayId}_${levelId}`;
             if (classData[studentName].climbs[key]) {
@@ -894,6 +1099,7 @@
 
         function updateStudentUI(studentName) {
             const studentData = db.classes[db.activeClass][studentName];
+            ensureStudentProps(studentData);
             const climbs = studentData.climbs || {};
             const bareme = getActiveBareme();
             let count = 0;
@@ -918,6 +1124,14 @@
             document.getElementById('display-student-pts').textContent = `${totalPts} pts`;
         }
 
+        function updateBaseEngagement(studentName, value) {
+            const classData = db.classes[db.activeClass];
+            if (!classData[studentName]) return;
+            classData[studentName].baseEngagement = parseFloat(value) || 0;
+            saveDB();
+            renderProfTable();
+        }
+
         function updateExtraScore(studentName, field, value) {
             const classData = db.classes[db.activeClass];
             if (!classData[studentName]) return;
@@ -934,6 +1148,7 @@
 
             Object.keys(studentsObj).sort().forEach(name => {
                 const student = studentsObj[name];
+                ensureStudentProps(student);
                 const climbs = student.climbs || {};
                 const climbPts = calculateClimbPoints(climbs);
                 
@@ -947,16 +1162,30 @@
                 });
                 const detailsDisplay = detailsText.length > 0 ? detailsText.join(', ') : '<span style="color:#64748b">Aucune voie</span>';
 
-                const engagement = student.engagement !== undefined ? student.engagement : 3;
-                const securite = student.securite !== undefined ? student.securite : 3;
-                const totalNote = Math.min(bareme.maxTotal, climbPts + engagement + securite).toFixed(1);
+                const computedEng = getComputedEngagement(student);
+                const securite = student.securite;
+                const totalNote = Math.min(bareme.maxTotal, climbPts + computedEng + securite).toFixed(1);
+                const sanctionHtml = getSanctionStatusHtml(student);
+
+                // Si 2 cartons rouges (out séquence), on affiche clairement un style désactivé ou à 0 sur l'input
+                const isOutSequence = (student.redCards === 2);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${name}</strong></td>
                     <td><div class="details-list">${detailsDisplay}</div></td>
+                    <td>
+                        <div class="cards-group">
+                            <button class="card-btn yellow" onclick="addCard('${name}', 'yellow')" title="Gérer carton jaune">🟨 (${student.yellowCards})</button>
+                            <button class="card-btn red" onclick="addCard('${name}', 'red')" title="Gérer carton rouge">🟥 (${student.redCards})</button>
+                        </div>
+                        ${sanctionHtml}
+                    </td>
                     <td><span class="score-badge">${climbPts}</span></td>
-                    <td><input type="number" class="input-score" value="${engagement}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'engagement', this.value); renderProfTable();"></td>
+                    <td>
+                        <input type="number" class="input-score" value="${computedEng.toFixed(1)}" min="0" max="5" step="0.5" 
+                               onchange="updateBaseEngagement('${name}', this.value)" ${isOutSequence ? 'disabled style="opacity:0.4"' : ''} title="Note d'engagement effective après pénalité">
+                    </td>
                     <td><input type="number" class="input-score" value="${securite}" min="0" max="5" step="0.5" onchange="updateExtraScore('${name}', 'securite', this.value); renderProfTable();"></td>
                     <td><span class="note-badge">${totalNote} / ${bareme.maxTotal}</span></td>
                 `;
@@ -967,13 +1196,15 @@
         function exportCSV() {
             const className = db.activeClass;
             const bareme = getActiveBareme();
-            let csv = `Classe;Eleve;Detail Voies;Points Voies;Engagement;Securite;Total sur ${bareme.maxTotal}\n`;
+            let csv = `Classe;Eleve;Detail Voies;Points Voies;Cartons Jaunes;Cartons Rouges;Engagement (Effectif);Securite;Total sur ${bareme.maxTotal}\n`;
             const studentsObj = db.classes[className] || {};
 
             Object.keys(studentsObj).sort().forEach(name => {
                 const student = studentsObj[name];
+                ensureStudentProps(student);
                 const climbs = student.climbs || {};
                 const climbPts = calculateClimbPoints(climbs);
+                const computedEng = getComputedEngagement(student);
                 
                 let detailsText = [];
                 bareme.wall.forEach(way => {
@@ -984,11 +1215,9 @@
                     });
                 });
 
-                const engagement = student.engagement !== undefined ? student.engagement : 3;
-                const securite = student.securite !== undefined ? student.securite : 3;
-                const totalNote = Math.min(bareme.maxTotal, climbPts + engagement + securite).toFixed(1);
+                const totalNote = Math.min(bareme.maxTotal, climbPts + computedEng + student.securite).toFixed(1);
 
-                csv += `"${className}";"${name}";"${detailsText.join(' / ')}";${climbPts};${engagement};${securite};${totalNote}\n`;
+                csv += `"${className}";"${name}";"${detailsText.join(' / ')}";${climbPts};${student.yellowCards};${student.redCards};${computedEng};${student.securite};${totalNote}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -998,18 +1227,6 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        function resetCurrentClassData() {
-            if (confirm(`Veux-tu vraiment réinitialiser toutes les notes de la classe ${db.activeClass} ?`)) {
-                const studentsObj = db.classes[db.activeClass];
-                Object.keys(studentsObj).forEach(name => {
-                    studentsObj[name] = { climbs: {}, engagement: 3, securite: 3 };
-                });
-                saveDB();
-                init();
-                alert("Données de la classe réinitialisées.");
-            }
         }
 
         window.onload = init;
